@@ -36,7 +36,7 @@ async def step(request: StepRequest):
             "observation": observation,
             "reward": float(reward),
             "done": bool(done),
-            "info": {}
+            "info": {"score": float(reward)}
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
