@@ -63,5 +63,9 @@ async def step(request: Request):
     except Exception as e:
         return JSONResponse(content={"error": str(e), "done": True, "reward": 0.05}, status_code=200)
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for the server."""
     uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
