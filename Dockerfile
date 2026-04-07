@@ -1,5 +1,5 @@
 # Use a more specific and standard image
-FROM python:3.10-slim
+FROM python:3.11
 
 # Set environment variables to prevent python from creating .pyc files
 ENV PYTHONDONTWRITEBYTECODE 1
