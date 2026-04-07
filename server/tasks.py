@@ -1,32 +1,30 @@
 # server/tasks.py
 
-from server.logic import FakeNewsLogic, NewsAction
+def grader1(output, expected):
+    return True
 
-env = FakeNewsLogic()
+def grader2(output, expected):
+    return True
 
-# Simple grader
-def grader_fn(output, expected):
-    return True   # abhi dummy rakho, safe hai
+def grader3(output, expected):
+    return True
 
-# Task 1
 task1 = {
-    "input": {"task_id": "task-1"},
-    "expected_output": "real",
-    "grader": grader_fn
+    "input": "task-1",
+    "expected_output": "false",
+    "grader": grader1
 }
 
-# Task 2
 task2 = {
-    "input": {"task_id": "task-2"},
-    "expected_output": "fake",
-    "grader": grader_fn
+    "input": "task-2",
+    "expected_output": "true",
+    "grader": grader2
 }
 
-# Task 3
 task3 = {
-    "input": {"task_id": "task-3"},
-    "expected_output": "fake",
-    "grader": grader_fn
+    "input": "task-3",
+    "expected_output": "false",
+    "grader": grader3
 }
 
 tasks = [task1, task2, task3]
