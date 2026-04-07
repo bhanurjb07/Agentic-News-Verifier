@@ -2,7 +2,6 @@ import random
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
 
-
 class NewsAction(BaseModel):
     action_type: str  
     query_or_label: str
@@ -12,36 +11,35 @@ class NewsObservation(BaseModel):
     evidence: str
     steps_left: int
 
-
 class FakeNewsLogic:
     def __init__(self):
-        # Real-world scenarios: Easy (Obvious), Medium (Requires 1 search), Hard (Conflicting info)
+        # IDs are task-1, task-2, task-3 for Meta Validator
         self.task_data = {
             "task-1": {
                 "headline": "NASA confirms the Moon is made of 100% Swiss Cheese.",
-                "label": "False",
+                "label": "false",
                 "base_evidence": "Basic planetary science contradicts this.",
                 "search_results": "Scientific journals confirm Moon is made of rock and metal."
             },
             "task-2": {
                 "headline": "New government policy: All citizens to receive 1000 units of currency tomorrow.",
-                "label": "True",
+                "label": "true",
                 "base_evidence": "Social media rumors are circulating.",
                 "search_results": "Official Government Gazette Vol 42 confirms the 'Economic Stimulus Act'."
             },
             "task-3": {
                 "headline": "Study shows drinking coffee leads to immediate 20% increase in IQ.",
-                "label": "False",
+                "label": "false",
                 "base_evidence": "A viral blog post claims this study is revolutionary.",
-                "search_results": "Original study found only temporary alertness, not IQ increase. Parody site misquoted the results."
+                "search_results": "Original study found temporary alertness, not IQ increase."
             }
         }
         self.reset("task-1")
 
-    def reset(self, task_id: str = "task-1") -> NewsObservation:
-        # Task ID handle karna zaroori hai
-        if task_id not in self.task_data:
-            task_id = "task-1"
+    def reset(self, task_id: str = None) -> NewsObservation:
+        # Fallback to random task if ID is missing or wrong
+        if not task_id or task_id not in self.task_data:
+            task_id = random.choice(list(self.task_data.keys()))
             
         self.current_task_id = task_id
         self.current_task = self.task_data[task_id]
@@ -49,46 +47,36 @@ class FakeNewsLogic:
         self.steps_left = 5
         self.done = False
         
-        return NewsObservation(
-            headline=self.current_task["headline"],
-            evidence=self.collected_evidence,
-            steps_left=self.steps_left
-        )
+        return self._get_obs()
 
     def step(self, action: NewsAction):
         if self.done:
-            # Done hone ke baad bhi reward 0.0 nahi, 0.01 rakho (safe side)
-            return self._get_obs(),float(reward), self.done, {"score": float(reward)}
+            return self._get_obs(), 0.05, True, {"score": 0.05}
 
         self.steps_left -= 1
-        reward = 0.05  # Default small positive reward (0 nahi hona chahiye)
+        reward = 0.05 # Default small reward to avoid 0.0
         
-        # Action Logic
         if action.action_type == "search":
-            # Partial Reward for gathering information
+            # Reward for gathering evidence
             if self.collected_evidence == self.current_task["base_evidence"]:
-                reward = 0.15 # 0.10 se thoda badha diya
+                reward = 0.15
                 self.collected_evidence = self.current_task["search_results"]
             else:
-                reward = 0.08 # Repeat search par bhi 0 se bada reward
+                reward = 0.08
             
         elif action.action_type == "verify":
             self.done = True
-            # FINAL SCORE FIX: 0 aur 1 ke beech hona chahiye
+            # Check answer
             if action.query_or_label.strip().lower() == self.current_task["label"].lower():
-                # Correct Answer: 1.0 ki jagah 0.95 do
-                reward = 0.95 
+                reward = 0.95 # Success (strictly < 1)
             else:
-                # Wrong Answer: 0.0 ki jagah 0.05 do
-                reward = 0.05
+                reward = 0.05 # Failure (strictly > 0)
         
-        # Max steps reached check
         if self.steps_left <= 0:
             self.done = True
-            if not self.done: # Agar bina verify kiye steps khatam hue
-                reward = 0.02
             
-        return self._get_obs(), float(reward), self.done
+        # IMPORTANT: Return 4 values and include "score" in info dict
+        return self._get_obs(), float(reward), self.done, {"score": float(reward)}
 
     def _get_obs(self) -> NewsObservation:
         return NewsObservation(
