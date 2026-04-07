@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from server.logic import FakeNewsLogic, NewsAction
 from fastapi.responses import JSONResponse
 import uvicorn
+from server.tasks import tasks
 
 app = FastAPI()
 env_logic = FakeNewsLogic()
